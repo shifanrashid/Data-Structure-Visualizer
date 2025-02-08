@@ -1,0 +1,158 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+
+class Button {
+public:
+    sf::RectangleShape shape;
+    sf::Text text;
+
+    Button(const std::string& label, const sf::Font& font, sf::Vector2f size, sf::Vector2f position, sf::Color color)
+        : shape(size), text(label, font, 18) {
+        shape.setPosition(position);
+        shape.setFillColor(color);
+        shape.setOutlineThickness(2);
+        shape.setOutlineColor(sf::Color::White);
+
+        text.setFillColor(sf::Color::White);
+        text.setPosition(
+            position.x + (size.x - text.getLocalBounds().width) / 2,
+            position.y + (size.y - text.getLocalBounds().height) / 2 - 5
+        );
+    }
+
+    bool isClicked(sf::Vector2f mousePos) {
+        return shape.getGlobalBounds().contains(mousePos);
+    }
+
+    void draw(sf::RenderWindow& window) {
+        window.draw(shape);
+        window.draw(text);
+    }
+};
+
+class Visualizer {
+public:
+    sf::RenderWindow window;
+    sf::Font font;
+    sf::Text titleText;
+    std::vector<Button> buttons;
+    Button backButton;
+    Button visualizeButton;
+    bool showMainPage = true;
+    std::string currentAlgorithm = "";
+
+    struct DataStructureInfo {
+        std::string description, bestComplexity, averageComplexity, advantages, disadvantages;
+    };
+
+    std::unordered_map<std::string, DataStructureInfo> dataStructures = {
+        {"Stacks", {"LIFO data structure.", "O(1)", "O(1)", "Efficient for undo operations.", "No random access."}},
+        {"Queues", {"FIFO data structure.", "O(1)", "O(1)", "Used in scheduling.", "No reverse traversal."}},
+        {"Graphs", {"Nodes connected by edges.", "Depends", "Depends", "Models networks.", "Complex to implement."}},
+        {"Trees", {"", "", "", "", ""}},
+        {"Algorithms", {"", "", "", "", ""}}
+    };
+
+    Visualizer() :
+        window(sf::VideoMode(800, 600), "Data Structure & Algorithm Visualizer", sf::Style::Default),
+        backButton("Back", font, sf::Vector2f(100, 40), sf::Vector2f(10, 10), sf::Color(100, 100, 200)),
+        visualizeButton("Visualize", font, sf::Vector2f(150, 50), sf::Vector2f(325, 500), sf::Color(100, 200, 100))
+    {
+        if (!font.loadFromFile("arial.ttf")) {
+            std::cerr << "Error loading font!" << std::endl;
+            return;
+        }
+
+        titleText.setFont(font);
+        titleText.setString("Data Structures & Algorithm Visualization");
+        titleText.setCharacterSize(36);
+        titleText.setFillColor(sf::Color::White);
+        titleText.setStyle(sf::Text::Bold);
+        titleText.setPosition(100, 50);
+
+        std::vector<std::string> algorithms = {"Stacks", "Queues", "Trees", "Graphs", "Algorithms"};
+        float y = 200;
+        for (const auto& algo : algorithms) {
+            buttons.push_back(Button(algo, font, sf::Vector2f(200, 50), sf::Vector2f(300, y), sf::Color(100, 100, 200)));
+            y += 70;
+        }
+    }
+
+    void run() {
+        while (window.isOpen()) {
+            handleEvents();
+            render();
+        }
+    }
+
+    void handleEvents() {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                sf::Vector2f mousePos = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
+
+                if (showMainPage) {
+                    for (auto& button : buttons) {
+                        if (button.isClicked(mousePos)) {
+                            currentAlgorithm = button.text.getString();
+                            showMainPage = false;
+                            break;
+                        }
+                    }
+                } else {
+                    if (backButton.isClicked(mousePos)) showMainPage = true;
+                }
+            }
+        }
+    }
+
+    void render() {
+        window.clear(sf::Color(50, 50, 50));
+
+        if (showMainPage) {
+            window.draw(titleText);
+            for (auto& button : buttons) button.draw(window);
+        } else {
+            sf::Text algorithmTitle;
+            algorithmTitle.setFont(font);
+            algorithmTitle.setString(currentAlgorithm + " Visualization");
+            algorithmTitle.setCharacterSize(30);
+            algorithmTitle.setFillColor(sf::Color::White);
+            algorithmTitle.setPosition(250, 50);
+            window.draw(algorithmTitle);
+
+            auto& info = dataStructures[currentAlgorithm];
+            sf::Text descriptionText;
+            descriptionText.setFont(font);
+            descriptionText.setCharacterSize(18);
+            descriptionText.setFillColor(sf::Color::White);
+
+            std::vector<std::string> texts = {"Description: " + info.description, "Best Case: " + info.bestComplexity,
+                                              "Average Case: " + info.averageComplexity, "Advantages: " + info.advantages,
+                                              "Disadvantages: " + info.disadvantages};
+            float y = 150;
+            for (const auto& line : texts) {
+                descriptionText.setString(line);
+                descriptionText.setPosition(50, y);
+                window.draw(descriptionText);
+                y += 50;
+            }
+
+            backButton.draw(window);
+            visualizeButton.draw(window);
+        }
+
+        window.display();
+    }
+};
+
+int main() {
+    Visualizer visualizer;
+    visualizer.run();
+    return 0;
+}

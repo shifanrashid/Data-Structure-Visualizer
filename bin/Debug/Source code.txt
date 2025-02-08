@@ -1,0 +1,130 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+
+// Function to create a button with text
+sf::RectangleShape createButton(const sf::Font& font, const std::string& text, sf::Vector2f position, sf::Vector2f size) {
+    sf::RectangleShape button(size);
+    button.setPosition(position);
+    button.setFillColor(sf::Color(100, 100, 200));
+    button.setOutlineThickness(2);
+    button.setOutlineColor(sf::Color::White);
+
+    sf::Text buttonText;
+    buttonText.setFont(font);
+    buttonText.setString(text);
+    buttonText.setCharacterSize(18);
+    buttonText.setFillColor(sf::Color::White);
+    buttonText.setPosition(
+        position.x + (size.x - buttonText.getLocalBounds().width) / 2,
+        position.y + (size.y - buttonText.getLocalBounds().height) / 2 - 5
+    );
+
+    return button;
+}
+
+void drawButton(sf::RenderWindow& window, sf::RectangleShape& button, sf::Text& buttonText) {
+    window.draw(button);
+    window.draw(buttonText);
+}
+
+int main() {
+    // Create window
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Data Structure & Algorithm Visualizer", sf::Style::Close);
+
+    // Load icon image
+    sf::Image icon;
+    if (!icon.loadFromFile("Assets/logo.png")) { // Replace "icon.png" with your image file path
+        std::cerr << "Error loading icon!" << std::endl;
+        return -1;
+    }
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+
+
+
+    // Load font
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf")) {
+        std::cerr << "Error loading font!" << std::endl;
+        return -1;
+    }
+
+
+
+        // Create title text
+    sf::Text titleText;
+    titleText.setFont(font);
+    titleText.setString("Data Structures & Algorithm Visualization");
+    titleText.setCharacterSize(36); // Set font size
+    titleText.setFillColor(sf::Color::White); // Set text color
+    titleText.setStyle(sf::Text::Bold); // Set text style
+    titleText.setPosition(
+        (800 - titleText.getLocalBounds().width) / 2, // Center horizontally
+        50 // Position vertically
+    );
+
+
+
+
+
+
+    // Button labels
+    std::vector<std::string> algorithms = {"Stacks", "Queues", "Trees","Graphs","Algorithms"};
+    std::vector<sf::RectangleShape> buttons;
+    std::vector<sf::Text> buttonTexts;
+
+    // Create buttons and texts
+    sf::Vector2f buttonSize(200, 50);
+    float startY = 180;
+
+    for (size_t i = 0; i < algorithms.size(); ++i) {
+        sf::RectangleShape button(buttonSize);
+        button.setPosition(315, startY + i * 70);
+        button.setFillColor(sf::Color(100, 100, 200));
+        button.setOutlineThickness(2);
+        button.setOutlineColor(sf::Color::White);
+        buttons.push_back(button);
+
+        sf::Text buttonText;
+        buttonText.setFont(font);
+        buttonText.setString(algorithms[i]);
+        buttonText.setCharacterSize(18);
+        buttonText.setFillColor(sf::Color::White);
+        buttonText.setPosition(
+            button.getPosition().x + (buttonSize.x - buttonText.getLocalBounds().width) / 2,
+            button.getPosition().y + (buttonSize.y - buttonText.getLocalBounds().height) / 2 - 5
+        );
+        buttonTexts.push_back(buttonText);
+    }
+
+    // Main loop
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+
+            if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2f mousePos(event.mouseButton.x, event.mouseButton.y);
+                    for (size_t i = 0; i < buttons.size(); ++i) {
+                        if (buttons[i].getGlobalBounds().contains(mousePos)) {
+                            std::cout << "Selected: " << algorithms[i] << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render
+        window.clear(sf::Color(50, 50, 50));
+        window.draw(titleText); //Draw title
+        for (size_t i = 0; i < buttons.size(); ++i) {
+            window.draw(buttons[i]);
+            window.draw(buttonTexts[i]);
+        }
+        window.display();
+    }
+
+    return 0;
+}
