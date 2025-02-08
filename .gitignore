@@ -1,0 +1,1 @@
+-e "bin/\nobj/\n*.exe\n*.dll\n*.o\n*.layout\n*.depend\n*.cbp\n*.png\n*.ttf" 
